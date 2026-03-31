@@ -83,10 +83,10 @@
                     <a href="/Admin/Conversations?channel=Direct" class="nav-link"><i class="bi bi-chat-heart"></i> Direct</a>
 
                     <hr class="sidebar-divider" />
-                    <form asp-controller="Account" asp-action="Logout" method="post" class="px-2">
+                    <form action="/Account/Logout" method="post" class="px-2 pb-2">
                         @Html.AntiForgeryToken()
-                        <button type="submit" class="nav-link text-danger w-100 text-start" style="border: none; background: none; cursor: pointer;">
-                            <i class="bi bi-box-arrow-right"></i> Logout
+                        <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                            <i class="bi bi-box-arrow-right me-1"></i> Logout
                         </button>
                     </form>
                 }
@@ -112,10 +112,10 @@
                     </a>
 
                     <hr class="sidebar-divider" />
-                    <form asp-controller="Account" asp-action="Logout" method="post" class="px-2">
+                    <form action="/Account/Logout" method="post" class="px-2 pb-2">
                         @Html.AntiForgeryToken()
-                        <button type="submit" class="nav-link text-danger w-100 text-start" style="border: none; background: none; cursor: pointer;">
-                            <i class="bi bi-box-arrow-right"></i> Logout
+                        <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                            <i class="bi bi-box-arrow-right me-1"></i> Logout
                         </button>
                     </form>
                 }
@@ -138,6 +138,13 @@
                         <a href="/Settings" class="theme-toggle" title="Settings" style="text-decoration: none;">
                             <i class="bi bi-gear"></i>
                         </a>
+
+                        <form action="/Account/Logout" method="post" style="margin: 0;">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="theme-toggle" title="Logout" style="color: #ef4444;">
+                                <i class="bi bi-box-arrow-right"></i>
+                            </button>
+                        </form>
 
                         <div class="dropdown">
                             <a href="#" class="user-dropdown-toggle dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
@@ -163,7 +170,7 @@
                                 <li><a class="dropdown-item" href="/Settings"><i class="bi bi-gear me-2"></i>Settings</a></li>
                                 <li><hr class="dropdown-divider" /></li>
                                 <li>
-                                    <form asp-controller="Account" asp-action="Logout" method="post">
+                                    <form action="/Account/Logout" method="post">
                                         @Html.AntiForgeryToken()
                                         <button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i>Logout</button>
                                     </form>

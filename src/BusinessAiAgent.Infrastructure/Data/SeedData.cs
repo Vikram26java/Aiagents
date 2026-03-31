@@ -32,5 +32,20 @@ public static class SeedData
             if (result.Succeeded)
                 await userManager.AddToRoleAsync(admin, "Admin");
         }
+
+        const string customerEmail = "customer@businessai.com";
+        if (await userManager.FindByEmailAsync(customerEmail) == null)
+        {
+            var customer = new AppUser
+            {
+                UserName = customerEmail,
+                Email = customerEmail,
+                FullName = "Demo Customer",
+                EmailConfirmed = true
+            };
+            var result = await userManager.CreateAsync(customer, "Customer123!");
+            if (result.Succeeded)
+                await userManager.AddToRoleAsync(customer, "Customer");
+        }
     }
 }
