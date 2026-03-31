@@ -15,6 +15,7 @@ public class AppDbContext : IdentityDbContext<AppUser>
     public DbSet<SmsRecord> SmsRecords => Set<SmsRecord>();
     public DbSet<EmailRecord> EmailRecords => Set<EmailRecord>();
     public DbSet<Company> Companies => Set<Company>();
+    public DbSet<Meeting> Meetings => Set<Meeting>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -93,6 +94,16 @@ public class AppDbContext : IdentityDbContext<AppUser>
                 .WithMany(c => c.EmailRecords)
                 .HasForeignKey(er => er.ConversationId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Meeting>(e =>
+        {
+            e.HasOne(m => m.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(m => m.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasIndex(m => m.StartTime);
         });
     }
 }

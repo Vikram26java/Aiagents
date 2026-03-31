@@ -404,6 +404,29 @@ a:hover {
     display: flex;
     gap: 0.375rem;
     align-items: center;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+}
+
+/* Table action column alignment */
+.table td:last-child .btn-group-actions {
+    justify-content: flex-end;
+}
+
+/* Ensure forms inside action groups don't break layout */
+.btn-group-actions form {
+    display: inline-flex;
+    margin: 0;
+}
+
+/* Page header action bar */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
 }
 
 /* ===== Forms ===== */
