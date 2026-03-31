@@ -81,6 +81,14 @@
                     <a href="/Admin/Conversations?channel=Sms" class="nav-link"><i class="bi bi-phone"></i> SMS</a>
                     <a href="/Admin/Conversations?channel=Email" class="nav-link"><i class="bi bi-envelope"></i> Email</a>
                     <a href="/Admin/Conversations?channel=Direct" class="nav-link"><i class="bi bi-chat-heart"></i> Direct</a>
+
+                    <hr class="sidebar-divider" />
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="px-2">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="nav-link text-danger w-100 text-start" style="border: none; background: none; cursor: pointer;">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </button>
+                    </form>
                 }
                 else if (User.IsInRole("Customer"))
                 {
@@ -102,6 +110,14 @@
                     <a href="/Settings" class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Settings" ? "active" : "")">
                         <i class="bi bi-gear"></i> Settings
                     </a>
+
+                    <hr class="sidebar-divider" />
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="px-2">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="nav-link text-danger w-100 text-start" style="border: none; background: none; cursor: pointer;">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </button>
+                    </form>
                 }
             </nav>
         </div>
