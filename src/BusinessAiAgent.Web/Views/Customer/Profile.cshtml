@@ -1,0 +1,90 @@
+@model AppUser
+@{
+    ViewData["Title"] = "My Profile";
+    var companies = (List<Company>)ViewBag.Companies;
+    var contact = ViewBag.Contact as Contact;
+    var userInitial = Model.FullName?.Length > 0 ? Model.FullName[0].ToString().ToUpper() : "?";
+}
+
+<h4 class="mb-4" style="color: var(--text-primary);">My Profile</h4>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        <i class="bi bi-check-circle me-1"></i> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <form asp-action="Profile" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" name="fullName" class="form-control" value="@Model.FullName" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" value="@Model.Email" disabled />
+                        <small style="color: var(--text-muted);">Email cannot be changed.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Phone</label>
+                        <input type="tel" name="phone" class="form-control" value="@Model.PhoneNumber" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Address</label>
+                        <input type="text" name="address" class="form-control" value="@Model.Address" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Company</label>
+                        <select name="companyId" class="form-select">
+                            <option value="">— No company —</option>
+                            @foreach (var c in companies)
+                            {
+                                <option value="@c.Id" selected="@(c.Id == Model.CompanyId)">@c.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Update Profile</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                @if (!string.IsNullOrEmpty(Model.ProfileImageUrl))
+                {
+                    <div class="avatar avatar-xl mx-auto mb-3"><img src="@Model.ProfileImageUrl" alt="@Model.FullName" /></div>
+                }
+                else
+                {
+                    <div class="avatar avatar-xl avatar-initials mx-auto mb-3">@userInitial</div>
+                }
+                <h5 style="color: var(--text-primary);">@Model.FullName</h5>
+                <p style="color: var(--text-secondary);">@Model.Email</p>
+                <hr />
+                <div class="text-start">
+                    @if (!string.IsNullOrEmpty(Model.PhoneNumber))
+                    {
+                        <p style="color: var(--text-secondary);"><i class="bi bi-telephone me-2" style="color: var(--accent);"></i> @Model.PhoneNumber</p>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.Address))
+                    {
+                        <p style="color: var(--text-secondary);"><i class="bi bi-geo-alt me-2" style="color: var(--accent);"></i> @Model.Address</p>
+                    }
+                    <p style="color: var(--text-secondary);"><i class="bi bi-calendar me-2" style="color: var(--accent);"></i> Joined @Model.CreatedAt.ToString("MMM dd, yyyy")</p>
+                    @if (contact != null)
+                    {
+                        <p style="color: var(--text-secondary);"><i class="bi bi-chat-dots me-2" style="color: var(--accent);"></i> @contact.Conversations.Count conversations</p>
+                    }
+                </div>
+                <a href="/Settings?tab=account" class="btn btn-outline-primary btn-sm mt-2"><i class="bi bi-camera me-1"></i> Change Avatar</a>
+            </div>
+        </div>
+    </div>
+</div>

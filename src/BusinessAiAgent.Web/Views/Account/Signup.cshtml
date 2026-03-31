@@ -1,0 +1,67 @@
+@using BusinessAiAgent.Core.Entities
+@model BusinessAiAgent.Core.DTOs.SignupViewModel
+@{
+    ViewData["Title"] = "Sign Up";
+    Layout = "_AuthLayout";
+    var companies = (List<Company>)ViewBag.Companies;
+}
+
+<div class="auth-card">
+    <div class="p-4">
+        <h4 class="text-center mb-4" style="color: var(--text-primary);">Create Account</h4>
+
+        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+        <form asp-action="Signup" method="post">
+            <div class="mb-3">
+                <label asp-for="FullName" class="form-label"></label>
+                <input asp-for="FullName" class="form-control" autofocus />
+                <span asp-validation-for="FullName" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Phone" class="form-label"></label>
+                <input asp-for="Phone" class="form-control" />
+                <span asp-validation-for="Phone" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Address" class="form-label"></label>
+                <input asp-for="Address" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label asp-for="CompanyId" class="form-label"></label>
+                <select asp-for="CompanyId" class="form-select">
+                    <option value="">— No company —</option>
+                    @foreach (var c in companies)
+                    {
+                        <option value="@c.Id">@c.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" class="form-control" />
+                <span asp-validation-for="Password" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="ConfirmPassword" class="form-label"></label>
+                <input asp-for="ConfirmPassword" class="form-control" />
+                <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Create Account</button>
+        </form>
+
+        <hr />
+        <p class="text-center mb-0" style="color: var(--text-secondary);">
+            Already have an account? <a asp-action="Login">Sign In</a>
+        </p>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

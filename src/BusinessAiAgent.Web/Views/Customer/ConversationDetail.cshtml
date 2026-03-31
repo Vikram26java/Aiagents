@@ -1,0 +1,29 @@
+@model Conversation
+@{
+    ViewData["Title"] = Model.Subject;
+}
+
+<a href="/Customer/Conversations" class="text-decoration-none"><i class="bi bi-arrow-left me-1"></i> Back</a>
+
+<div class="mt-3 mb-3">
+    <h4 class="mb-0" style="color: var(--text-primary);">@Model.Subject</h4>
+    <small style="color: var(--text-secondary);">
+        <span class="badge @(Model.Channel.ToString() switch { "Chat" => "bg-primary", "Voice" => "bg-success", "Sms" => "bg-warning", "Email" => "bg-danger", "Direct" => "bg-dark", _ => "bg-secondary" })">@Model.Channel</span>
+        &middot; @Model.CreatedAt.ToString("MMM dd, yyyy HH:mm")
+    </small>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body chat-area" style="height: 500px; overflow-y: auto;">
+        @foreach (var msg in Model.Messages)
+        {
+            var isOutbound = msg.Direction == MessageDirection.Outbound;
+            <div class="d-flex @(isOutbound ? "justify-content-end" : "justify-content-start") mb-2">
+                <div class="chat-bubble @(isOutbound ? "chat-bubble-outbound" : "chat-bubble-inbound")">
+                    <div style="white-space: pre-wrap;">@msg.Body</div>
+                    <div class="chat-bubble-time">@msg.CreatedAt.ToString("HH:mm")</div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

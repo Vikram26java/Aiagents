@@ -1,0 +1,245 @@
+@{
+    ViewData["Title"] = "Calendar";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0" style="color: var(--text-primary);">Calendar</h4>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#meetingModal">
+        <i class="bi bi-plus-lg me-1"></i> New Meeting
+    </button>
+</div>
+
+<div class="filter-pills mb-3">
+    <button class="filter-pill active channel-filter" data-channel="">All</button>
+    <button class="filter-pill channel-filter" data-channel="Chat">Chat</button>
+    <button class="filter-pill channel-filter" data-channel="Voice">Voice</button>
+    <button class="filter-pill channel-filter" data-channel="Sms">SMS</button>
+    <button class="filter-pill channel-filter" data-channel="Email">Email</button>
+    <button class="filter-pill channel-filter" data-channel="Direct">Direct</button>
+    <button class="filter-pill channel-filter" data-channel="Meeting">Meetings</button>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <div id="calendar"></div>
+    </div>
+</div>
+
+<!-- New Meeting Modal -->
+<div class="modal fade" id="meetingModal" tabindex="-1" aria-labelledby="meetingModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="meetingModalLabel">Schedule Meeting</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="meetingTitle" class="form-label">Title</label>
+                    <input type="text" class="form-control" id="meetingTitle" placeholder="Meeting title..." required />
+                </div>
+                <div class="mb-3">
+                    <label for="meetingDescription" class="form-label">Description</label>
+                    <textarea class="form-control" id="meetingDescription" rows="3" placeholder="Optional description..."></textarea>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="meetingDate" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="meetingDate" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label for="meetingStartTime" class="form-label">Start Time</label>
+                        <input type="time" class="form-control" id="meetingStartTime" required />
+                    </div>
+                </div>
+                <div class="row g-3 mt-1">
+                    <div class="col-md-6">
+                        <label for="meetingEndDate" class="form-label">End Date</label>
+                        <input type="date" class="form-control" id="meetingEndDate" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label for="meetingEndTime" class="form-label">End Time</label>
+                        <input type="time" class="form-control" id="meetingEndTime" required />
+                    </div>
+                </div>
+                <div id="meetingError" class="alert alert-danger mt-3 d-none"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveMeetingBtn">
+                    <i class="bi bi-calendar-check me-1"></i> Schedule
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Meeting Detail Modal -->
+<div class="modal fade" id="meetingDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="meetingDetailTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="meetingDetailDescription" style="color: var(--text-secondary);"></p>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="bi bi-calendar3" style="color: var(--accent);"></i>
+                    <span id="meetingDetailTime" style="color: var(--text-primary);"></span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-person" style="color: var(--accent);"></i>
+                    <span id="meetingDetailCreatedBy" style="color: var(--text-secondary);"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger" id="deleteMeetingBtn">
+                    <i class="bi bi-trash me-1"></i> Delete
+                </button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.css" rel="stylesheet" />
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
+    <script>
+        let currentChannel = '';
+        let currentMeetingId = null;
+        const calendarEl = document.getElementById('calendar');
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+            },
+            events: function(info, successCallback, failureCallback) {
+                const url = `/api/calendar/events?start=${info.startStr}&end=${info.endStr}` +
+                    (currentChannel ? `&channel=${currentChannel}` : '');
+                fetch(url)
+                    .then(r => r.json())
+                    .then(data => successCallback(data))
+                    .catch(e => failureCallback(e));
+            },
+            dateClick: function(info) {
+                // Pre-fill date when clicking a calendar date
+                document.getElementById('meetingDate').value = info.dateStr;
+                document.getElementById('meetingEndDate').value = info.dateStr;
+                document.getElementById('meetingStartTime').value = '09:00';
+                document.getElementById('meetingEndTime').value = '10:00';
+                document.getElementById('meetingTitle').value = '';
+                document.getElementById('meetingDescription').value = '';
+                document.getElementById('meetingError').classList.add('d-none');
+                new bootstrap.Modal(document.getElementById('meetingModal')).show();
+            },
+            eventClick: function(info) {
+                info.jsEvent.preventDefault();
+                const props = info.event.extendedProps;
+                if (props.type === 'meeting') {
+                    currentMeetingId = props.meetingId;
+                    document.getElementById('meetingDetailTitle').textContent = info.event.title;
+                    document.getElementById('meetingDetailDescription').textContent = props.description || 'No description';
+                    document.getElementById('meetingDetailTime').textContent =
+                        new Date(info.event.start).toLocaleString() + ' — ' + new Date(info.event.end).toLocaleString();
+                    document.getElementById('meetingDetailCreatedBy').textContent = 'Created by ' + (props.createdBy || 'Unknown');
+                    new bootstrap.Modal(document.getElementById('meetingDetailModal')).show();
+                } else if (info.event.url) {
+                    window.location.href = info.event.url;
+                }
+            },
+            height: 'auto',
+            selectable: true
+        });
+        calendar.render();
+
+        // Channel filter
+        document.querySelectorAll('.channel-filter').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.channel-filter').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentChannel = this.dataset.channel;
+                calendar.refetchEvents();
+            });
+        });
+
+        // Save meeting
+        document.getElementById('saveMeetingBtn').addEventListener('click', async function() {
+            const title = document.getElementById('meetingTitle').value.trim();
+            const description = document.getElementById('meetingDescription').value.trim();
+            const date = document.getElementById('meetingDate').value;
+            const startTime = document.getElementById('meetingStartTime').value;
+            const endDate = document.getElementById('meetingEndDate').value;
+            const endTime = document.getElementById('meetingEndTime').value;
+            const errorEl = document.getElementById('meetingError');
+
+            if (!title || !date || !startTime || !endDate || !endTime) {
+                errorEl.textContent = 'Please fill in all required fields.';
+                errorEl.classList.remove('d-none');
+                return;
+            }
+
+            const startDt = new Date(`${date}T${startTime}`);
+            const endDt = new Date(`${endDate}T${endTime}`);
+
+            if (endDt <= startDt) {
+                errorEl.textContent = 'End time must be after start time.';
+                errorEl.classList.remove('d-none');
+                return;
+            }
+
+            this.disabled = true;
+            try {
+                const res = await fetch('/api/calendar/meetings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title: title,
+                        description: description || null,
+                        startTime: startDt.toISOString(),
+                        endTime: endDt.toISOString()
+                    })
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    errorEl.textContent = err.error || 'Failed to create meeting.';
+                    errorEl.classList.remove('d-none');
+                    return;
+                }
+
+                bootstrap.Modal.getInstance(document.getElementById('meetingModal')).hide();
+                calendar.refetchEvents();
+            } catch (e) {
+                errorEl.textContent = 'Network error. Please try again.';
+                errorEl.classList.remove('d-none');
+            }
+            this.disabled = false;
+        });
+
+        // Delete meeting
+        document.getElementById('deleteMeetingBtn').addEventListener('click', async function() {
+            if (!currentMeetingId || !confirm('Delete this meeting?')) return;
+            this.disabled = true;
+            try {
+                await fetch(`/api/calendar/meetings/${currentMeetingId}`, { method: 'DELETE' });
+                bootstrap.Modal.getInstance(document.getElementById('meetingDetailModal')).hide();
+                calendar.refetchEvents();
+            } catch (e) {
+                alert('Failed to delete meeting.');
+            }
+            this.disabled = false;
+        });
+
+        // Reset modal on close
+        document.getElementById('meetingModal').addEventListener('hidden.bs.modal', function() {
+            document.getElementById('meetingError').classList.add('d-none');
+        });
+    </script>
+}

@@ -1,0 +1,163 @@
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    var stats = (DashboardStats)ViewBag.Stats;
+    var recent = (List<Conversation>)ViewBag.RecentConversations;
+    var companyCount = (int)ViewBag.CompanyCount;
+    var userCount = (int)ViewBag.UserCount;
+}
+
+<h4 class="mb-4" style="color: var(--text-primary);">Admin Dashboard</h4>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm card-hover-lift">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon" style="background: rgba(99, 102, 241, 0.1); color: #6366f1;">
+                        <i class="bi bi-chat-dots"></i>
+                    </div>
+                    <div class="ms-3">
+                        <div class="stat-label">Conversations</div>
+                        <div class="stat-value">@stats.TotalConversations</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm card-hover-lift">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon" style="background: rgba(34, 197, 94, 0.1); color: #22c55e;">
+                        <i class="bi bi-chat-square-text"></i>
+                    </div>
+                    <div class="ms-3">
+                        <div class="stat-label">Messages</div>
+                        <div class="stat-value">@stats.TotalMessages</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm card-hover-lift">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <div class="ms-3">
+                        <div class="stat-label">Contacts</div>
+                        <div class="stat-value">@stats.TotalContacts</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm card-hover-lift">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon" style="background: rgba(234, 179, 8, 0.1); color: #eab308;">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <div class="ms-3">
+                        <div class="stat-label">Companies</div>
+                        <div class="stat-value">@companyCount</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-around">
+                    <span class="badge bg-primary">Chat @stats.ChatCount</span>
+                    <span class="badge bg-success">Voice @stats.VoiceCount</span>
+                    <span class="badge bg-warning">SMS @stats.SmsCount</span>
+                    <span class="badge bg-danger">Email @stats.EmailCount</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm card-hover-lift">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon" style="background: rgba(100, 116, 139, 0.1); color: #64748b;">
+                        <i class="bi bi-person-badge"></i>
+                    </div>
+                    <div class="ms-3">
+                        <div class="stat-label">Registered Users</div>
+                        <div class="stat-value">@userCount</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header">Quick Actions</div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="/Admin/Conversations" class="btn btn-primary"><i class="bi bi-chat-dots me-1"></i> Conversations</a>
+                    <a href="/Admin/Contacts" class="btn btn-outline-primary"><i class="bi bi-people me-1"></i> Contacts</a>
+                    <a href="/Admin/Companies" class="btn btn-outline-primary"><i class="bi bi-building me-1"></i> Companies</a>
+                    <a href="/Admin/Members" class="btn btn-outline-primary"><i class="bi bi-person-badge me-1"></i> Members</a>
+                    <a href="/Admin/Calendar" class="btn btn-outline-secondary"><i class="bi bi-calendar3 me-1"></i> Calendar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header">Recent Conversations</div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Channel</th>
+                    <th>Subject</th>
+                    <th>Contact</th>
+                    <th>Messages</th>
+                    <th>Created</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in recent)
+                {
+                    var badge = c.Channel.ToString() switch
+                    {
+                        "Chat" => "bg-primary",
+                        "Voice" => "bg-success",
+                        "Sms" => "bg-warning",
+                        "Email" => "bg-danger",
+                        "Direct" => "bg-dark",
+                        _ => "bg-secondary"
+                    };
+                    <tr>
+                        <td><span class="badge @badge">@c.Channel</span></td>
+                        <td style="color: var(--text-primary);">@c.Subject</td>
+                        <td style="color: var(--text-secondary);">@(c.Contact?.Name ?? "—")</td>
+                        <td style="color: var(--text-secondary);">@c.Messages.Count</td>
+                        <td style="color: var(--text-secondary);">@c.CreatedAt.ToString("MMM dd, HH:mm")</td>
+                        <td><a asp-action="ConversationDetail" asp-route-id="@c.Id" class="btn btn-sm btn-outline-primary">View</a></td>
+                    </tr>
+                }
+                @if (!recent.Any())
+                {
+                    <tr><td colspan="6" class="text-center py-4" style="color: var(--text-muted);">No conversations yet.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

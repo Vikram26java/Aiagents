@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/BusinessAiAgent.Core/BusinessAiAgent.Core.csproj" />
+    <Project Path="src/BusinessAiAgent.Infrastructure/BusinessAiAgent.Infrastructure.csproj" />
+    <Project Path="src/BusinessAiAgent.Web/BusinessAiAgent.Web.csproj" />
+  </Folder>
+</Solution>
