@@ -1,0 +1,91 @@
+@model Contact
+@{
+    ViewData["Title"] = Model.Name;
+    var initial = Model.Name.Length > 0 ? Model.Name[0].ToString().ToUpper() : "?";
+    var allMessages = Model.Conversations
+        .SelectMany(c => c.Messages.Select(m => new { Message = m, c.Channel, ConversationId = c.Id }))
+        .OrderByDescending(x => x.Message.CreatedAt)
+        .ToList();
+}
+
+<a href="/Admin/Contacts" class="text-decoration-none"><i class="bi bi-arrow-left me-1"></i> Back to Contacts</a>
+
+<div class="row mt-3">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="avatar avatar-xl avatar-initials mx-auto mb-3">@initial</div>
+                <h5 style="color: var(--text-primary);">@Model.Name</h5>
+                @if (Model.Company != null)
+                {
+                    <p style="color: var(--text-secondary);">@Model.Company.Name</p>
+                }
+                <hr />
+                <div class="text-start">
+                    @if (!string.IsNullOrEmpty(Model.Email))
+                    {
+                        <p style="color: var(--text-secondary);"><i class="bi bi-envelope me-2" style="color: var(--accent);"></i> @Model.Email</p>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.Phone))
+                    {
+                        <p style="color: var(--text-secondary);"><i class="bi bi-telephone me-2" style="color: var(--accent);"></i> @Model.Phone</p>
+                    }
+                    <p style="color: var(--text-secondary);"><i class="bi bi-calendar me-2" style="color: var(--accent);"></i> Created @Model.CreatedAt.ToString("MMM dd, yyyy")</p>
+                    @if (Model.UpdatedAt.HasValue)
+                    {
+                        <p style="color: var(--text-secondary);"><i class="bi bi-clock me-2" style="color: var(--accent);"></i> Updated @Model.UpdatedAt.Value.ToString("MMM dd, yyyy")</p>
+                    }
+                    <p style="color: var(--text-secondary);"><i class="bi bi-chat-dots me-2" style="color: var(--accent);"></i> @Model.Conversations.Count conversations</p>
+                </div>
+                <div class="mt-3 d-flex gap-2 justify-content-center">
+                    <a asp-action="EditContact" asp-route-id="@Model.Id" class="btn btn-warning btn-sm"><i class="bi bi-pencil"></i> Edit</a>
+                    <form asp-action="DeleteContact" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Delete this contact?')">
+                        @Html.AntiForgeryToken()
+                        <button class="btn btn-danger btn-sm"><i class="bi bi-trash"></i> Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header">Activity Timeline</div>
+            <div class="card-body" style="max-height: 600px; overflow-y: auto;">
+                @if (allMessages.Any())
+                {
+                    @foreach (var item in allMessages)
+                    {
+                        var badge = item.Channel.ToString() switch
+                        {
+                            "Chat" => "bg-primary",
+                            "Voice" => "bg-success",
+                            "Sms" => "bg-warning",
+                            "Email" => "bg-danger",
+                            "Direct" => "bg-dark",
+                            _ => "bg-secondary"
+                        };
+                        var icon = item.Message.Direction == MessageDirection.Inbound ? "bi-arrow-down-left" : "bi-arrow-up-right";
+                        <div class="d-flex mb-3">
+                            <div class="me-3">
+                                <span class="badge @badge"><i class="bi @icon"></i></span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between">
+                                    <strong style="color: var(--text-primary);">@item.Channel @item.Message.Direction</strong>
+                                    <small style="color: var(--text-muted);">@item.Message.CreatedAt.ToString("MMM dd, HH:mm")</small>
+                                </div>
+                                <p class="mb-1 text-truncate" style="max-width: 500px; color: var(--text-secondary);">@item.Message.Body</p>
+                                <a href="/Admin/ConversationDetail/@item.ConversationId" class="small text-decoration-none">View conversation</a>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-center py-3" style="color: var(--text-muted);">No activity yet.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>

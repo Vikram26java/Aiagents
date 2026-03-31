@@ -1,0 +1,29 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Secrets
+appsettings.*.json
+!appsettings.json
+*.pfx
+*.p12
+
+## IDE
+.vs/
+.vscode/
+*.swp
+
+## OS
+Thumbs.db
+.DS_Store
+
+## Uploads (keep directory structure, ignore uploaded files)
+src/BusinessAiAgent.Web/wwwroot/uploads/avatars/*
+!src/BusinessAiAgent.Web/wwwroot/uploads/avatars/.gitkeep
+
+## Claude
+.claude/

@@ -1,0 +1,240 @@
+@using BusinessAiAgent.Core.DTOs
+@using BusinessAiAgent.Core.Entities
+@{
+    ViewData["Title"] = "Dashboard";
+    var stats = (DashboardStats)ViewBag.Stats;
+    var recent = (List<Conversation>)ViewBag.RecentConversations;
+}
+
+<h4 class="mb-4" style="color: var(--text-primary);">Dashboard</h4>
+
+<!-- Stats Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm card-hover-lift">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon" style="background: rgba(99, 102, 241, 0.1); color: #6366f1;">
+                        <i class="bi bi-chat-dots"></i>
+                    </div>
+                    <div class="ms-3">
+                        <div class="stat-label">Conversations</div>
+                        <div class="stat-value">@stats.TotalConversations</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm card-hover-lift">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon" style="background: rgba(34, 197, 94, 0.1); color: #22c55e;">
+                        <i class="bi bi-chat-square-text"></i>
+                    </div>
+                    <div class="ms-3">
+                        <div class="stat-label">Messages</div>
+                        <div class="stat-value">@stats.TotalMessages</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm card-hover-lift">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <div class="ms-3">
+                        <div class="stat-label">Contacts</div>
+                        <div class="stat-value">@stats.TotalContacts</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-around">
+                    <span class="badge bg-primary">Chat @stats.ChatCount</span>
+                    <span class="badge bg-success">Voice @stats.VoiceCount</span>
+                    <span class="badge bg-warning">SMS @stats.SmsCount</span>
+                    <span class="badge bg-danger">Email @stats.EmailCount</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header">Quick Actions</div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2">
+                    <button class="btn btn-primary" id="btnNewChat">
+                        <i class="bi bi-chat-left-text me-1"></i> New Chat
+                    </button>
+                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#voiceModal">
+                        <i class="bi bi-telephone me-1"></i> Make Call
+                    </button>
+                    <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#smsModal">
+                        <i class="bi bi-phone me-1"></i> Send SMS
+                    </button>
+                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#emailModal">
+                        <i class="bi bi-envelope me-1"></i> Send Email
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Conversations -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header">Recent Conversations</div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Channel</th>
+                    <th>Subject</th>
+                    <th>Contact</th>
+                    <th>Messages</th>
+                    <th>Date</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (recent.Any())
+                {
+                    @foreach (var c in recent)
+                    {
+                        var badge = c.Channel.ToString() switch
+                        {
+                            "Chat" => "bg-primary",
+                            "Voice" => "bg-success",
+                            "Sms" => "bg-warning",
+                            "Email" => "bg-danger",
+                            _ => "bg-secondary"
+                        };
+                        <tr>
+                            <td><span class="badge @badge">@c.Channel</span></td>
+                            <td style="color: var(--text-primary);">@c.Subject</td>
+                            <td style="color: var(--text-secondary);">@(c.Contact?.Name ?? "—")</td>
+                            <td style="color: var(--text-secondary);">@c.Messages.Count</td>
+                            <td style="color: var(--text-secondary);">@c.CreatedAt.ToString("MMM dd, HH:mm")</td>
+                            <td><a asp-controller="Conversations" asp-action="Detail" asp-route-id="@c.Id" class="btn btn-sm btn-outline-primary">View</a></td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="6" class="text-center py-4" style="color: var(--text-muted);">No conversations yet. Start one above!</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Voice Modal -->
+<div class="modal fade" id="voiceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Make a Call</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-3"><label class="form-label">Phone Number</label><input type="tel" class="form-control" id="voiceTo" placeholder="+1234567890" /></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success" id="btnMakeCall">Call</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SMS Modal -->
+<div class="modal fade" id="smsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Send SMS</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-3"><label class="form-label">Phone Number</label><input type="tel" class="form-control" id="smsTo" placeholder="+1234567890" /></div>
+                <div class="mb-3"><label class="form-label">Message</label><textarea class="form-control" id="smsBody" rows="3"></textarea></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-warning" id="btnSendSms">Send</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Email Modal -->
+<div class="modal fade" id="emailModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Send Email</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-3"><label class="form-label">To</label><input type="email" class="form-control" id="emailTo" /></div>
+                <div class="mb-3"><label class="form-label">Subject</label><input type="text" class="form-control" id="emailSubject" /></div>
+                <div class="mb-3"><label class="form-label">Body</label><textarea class="form-control" id="emailBody" rows="4"></textarea></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="btnSendEmail">Send</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    document.getElementById('btnNewChat').addEventListener('click', async () => {
+        const res = await fetch('/api/chat/conversations', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ subject: 'New Chat' })
+        });
+        const data = await res.json();
+        window.location.href = `/conversations/${data.id}`;
+    });
+
+    document.getElementById('btnMakeCall').addEventListener('click', async () => {
+        const to = document.getElementById('voiceTo').value;
+        await fetch('/api/voice/make', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ to })
+        });
+        bootstrap.Modal.getInstance(document.getElementById('voiceModal')).hide();
+        alert('Call initiated!');
+    });
+
+    document.getElementById('btnSendSms').addEventListener('click', async () => {
+        const to = document.getElementById('smsTo').value;
+        const body = document.getElementById('smsBody').value;
+        await fetch('/api/sms/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ to, body })
+        });
+        bootstrap.Modal.getInstance(document.getElementById('smsModal')).hide();
+        alert('SMS sent!');
+    });
+
+    document.getElementById('btnSendEmail').addEventListener('click', async () => {
+        const to = document.getElementById('emailTo').value;
+        const subject = document.getElementById('emailSubject').value;
+        const body = document.getElementById('emailBody').value;
+        await fetch('/api/email/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ to, subject, body })
+        });
+        bootstrap.Modal.getInstance(document.getElementById('emailModal')).hide();
+        alert('Email sent!');
+    });
+</script>
+}

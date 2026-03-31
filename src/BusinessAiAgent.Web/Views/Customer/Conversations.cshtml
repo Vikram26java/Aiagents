@@ -1,0 +1,47 @@
+@model List<Conversation>
+@{
+    ViewData["Title"] = "My Conversations";
+}
+
+<h4 class="mb-4" style="color: var(--text-primary);">My Conversations</h4>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Channel</th>
+                    <th>Subject</th>
+                    <th>Messages</th>
+                    <th>Created</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model)
+                {
+                    var badge = c.Channel.ToString() switch
+                    {
+                        "Chat" => "bg-primary",
+                        "Voice" => "bg-success",
+                        "Sms" => "bg-warning",
+                        "Email" => "bg-danger",
+                        "Direct" => "bg-dark",
+                        _ => "bg-secondary"
+                    };
+                    <tr>
+                        <td><span class="badge @badge">@c.Channel</span></td>
+                        <td style="color: var(--text-primary);">@c.Subject</td>
+                        <td style="color: var(--text-secondary);">@c.Messages.Count</td>
+                        <td style="color: var(--text-secondary);">@c.CreatedAt.ToString("MMM dd, HH:mm")</td>
+                        <td><a asp-action="ConversationDetail" asp-route-id="@c.Id" class="btn btn-sm btn-outline-primary">View</a></td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="5" class="text-center py-4" style="color: var(--text-muted);">No conversations found.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

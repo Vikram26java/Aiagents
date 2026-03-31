@@ -1,0 +1,41 @@
+@model BusinessAiAgent.Core.DTOs.LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+    Layout = "_AuthLayout";
+}
+
+<div class="auth-card">
+    <div class="p-4">
+        <h4 class="text-center mb-4" style="color: var(--text-primary);">Sign In</h4>
+
+        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+        <form asp-action="Login" method="post">
+            <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" placeholder="you@example.com" autofocus />
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" class="form-control" />
+                <span asp-validation-for="Password" class="text-danger small"></span>
+            </div>
+            <div class="mb-3 form-check">
+                <input asp-for="RememberMe" class="form-check-input" />
+                <label asp-for="RememberMe" class="form-check-label" style="color: var(--text-secondary);"></label>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Sign In</button>
+        </form>
+
+        <hr />
+        <p class="text-center mb-0" style="color: var(--text-secondary);">
+            Don't have an account? <a asp-action="Signup">Sign Up</a>
+        </p>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

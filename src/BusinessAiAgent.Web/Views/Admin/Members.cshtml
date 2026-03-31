@@ -1,0 +1,64 @@
+@model List<AppUser>
+@{
+    ViewData["Title"] = "Members";
+    var userRoles = (Dictionary<string, IList<string>>)ViewBag.UserRoles;
+}
+
+<h4 class="mb-4" style="color: var(--text-primary);">Members</h4>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Company</th>
+                    <th>Roles</th>
+                    <th>Joined</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model)
+                {
+                    var roles = userRoles.ContainsKey(user.Id) ? userRoles[user.Id] : new List<string>();
+                    var initial = user.FullName.Length > 0 ? user.FullName[0].ToString().ToUpper() : "?";
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                @if (!string.IsNullOrEmpty(user.ProfileImageUrl))
+                                {
+                                    <div class="avatar avatar-sm"><img src="@user.ProfileImageUrl" alt="@user.FullName" /></div>
+                                }
+                                else
+                                {
+                                    <div class="avatar avatar-sm avatar-initials">@initial</div>
+                                }
+                                <strong style="color: var(--text-primary);">@user.FullName</strong>
+                            </div>
+                        </td>
+                        <td style="color: var(--text-secondary);">@user.Email</td>
+                        <td style="color: var(--text-secondary);">@(user.Company?.Name ?? "—")</td>
+                        <td>
+                            @foreach (var role in roles)
+                            {
+                                var roleBadge = role switch
+                                {
+                                    "Admin" => "bg-danger",
+                                    "Customer" => "bg-primary",
+                                    _ => "bg-secondary"
+                                };
+                                <span class="badge @roleBadge">@role</span>
+                            }
+                        </td>
+                        <td style="color: var(--text-secondary);">@user.CreatedAt.ToString("MMM dd, yyyy")</td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="5" class="text-center py-4" style="color: var(--text-muted);">No members found.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

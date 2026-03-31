@@ -1,0 +1,171 @@
+@inject SignInManager<AppUser> SignInManager
+@inject UserManager<AppUser> UserManager
+@{
+    var currentUser = SignInManager.IsSignedIn(User) ? await UserManager.GetUserAsync(User) : null;
+    var userInitial = currentUser?.FullName?.Length > 0 ? currentUser.FullName[0].ToString().ToUpper() : "?";
+    var userRole = User.IsInRole("Admin") ? "Admin" : "Customer";
+    var profileImageUrl = currentUser?.ProfileImageUrl;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Business AI Agent</title>
+    <script>
+        (function() {
+            var theme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div id="sidebar" style="width: 250px; min-height: 100vh; flex-shrink: 0;">
+            <div class="p-3" style="border-bottom: 1px solid var(--sidebar-border);">
+                <div class="sidebar-brand"><i class="bi bi-robot me-2"></i>Business AI Agent</div>
+            </div>
+
+            @if (currentUser != null)
+            {
+                <div class="sidebar-user" style="border-bottom: 1px solid var(--sidebar-border);">
+                    @if (!string.IsNullOrEmpty(profileImageUrl))
+                    {
+                        <div class="avatar"><img src="@profileImageUrl" alt="@currentUser.FullName" /></div>
+                    }
+                    else
+                    {
+                        <div class="avatar avatar-initials">@userInitial</div>
+                    }
+                    <div>
+                        <div class="sidebar-user-name">@currentUser.FullName</div>
+                        <div class="sidebar-user-role">@userRole</div>
+                    </div>
+                </div>
+            }
+
+            <nav class="p-2">
+                @if (User.IsInRole("Admin"))
+                {
+                    <a href="/Admin" class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Admin" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+                    <a href="/Admin/Conversations" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString()?.Contains("Conversation") == true ? "active" : "")">
+                        <i class="bi bi-chat-dots"></i> Conversations
+                    </a>
+                    <a href="/Admin/Contacts" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Contacts" || ViewContext.RouteData.Values["action"]?.ToString() == "ContactDetail" || ViewContext.RouteData.Values["action"]?.ToString() == "EditContact" ? "active" : "")">
+                        <i class="bi bi-people"></i> Contacts
+                    </a>
+                    <a href="/Admin/Companies" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString()?.Contains("Company") == true ? "active" : "")">
+                        <i class="bi bi-building"></i> Companies
+                    </a>
+                    <a href="/Admin/Members" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Members" ? "active" : "")">
+                        <i class="bi bi-person-badge"></i> Members
+                    </a>
+                    <a href="/Admin/Calendar" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Calendar" ? "active" : "")">
+                        <i class="bi bi-calendar3"></i> Calendar
+                    </a>
+                    <a href="/Settings" class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Settings" ? "active" : "")">
+                        <i class="bi bi-gear"></i> Settings
+                    </a>
+
+                    <hr class="sidebar-divider" />
+                    <div class="sidebar-section-label">Channels</div>
+                    <a href="/Admin/Conversations?channel=Chat" class="nav-link"><i class="bi bi-chat-left-text"></i> Chat</a>
+                    <a href="/Admin/Conversations?channel=Voice" class="nav-link"><i class="bi bi-telephone"></i> Voice</a>
+                    <a href="/Admin/Conversations?channel=Sms" class="nav-link"><i class="bi bi-phone"></i> SMS</a>
+                    <a href="/Admin/Conversations?channel=Email" class="nav-link"><i class="bi bi-envelope"></i> Email</a>
+                    <a href="/Admin/Conversations?channel=Direct" class="nav-link"><i class="bi bi-chat-heart"></i> Direct</a>
+                }
+                else if (User.IsInRole("Customer"))
+                {
+                    <a href="/Customer" class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Customer" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+                    <a href="/Customer/Conversations" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString()?.Contains("Conversation") == true ? "active" : "")">
+                        <i class="bi bi-chat-dots"></i> My Conversations
+                    </a>
+                    <a href="/Customer/Calendar" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Calendar" ? "active" : "")">
+                        <i class="bi bi-calendar3"></i> Calendar
+                    </a>
+                    <a href="/Customer/Chat" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Chat" ? "active" : "")">
+                        <i class="bi bi-chat-heart"></i> Direct Chat
+                    </a>
+                    <a href="/Customer/Profile" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Profile" ? "active" : "")">
+                        <i class="bi bi-person-circle"></i> My Profile
+                    </a>
+                    <a href="/Settings" class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Settings" ? "active" : "")">
+                        <i class="bi bi-gear"></i> Settings
+                    </a>
+                }
+            </nav>
+        </div>
+
+        <!-- Page Content -->
+        <div class="flex-grow-1 d-flex flex-column" style="min-height: 100vh;">
+            <nav class="top-navbar navbar px-4 py-2">
+                <span class="navbar-text" style="color: var(--text-secondary);">
+                    <i class="bi bi-calendar3 me-1"></i> @DateTime.UtcNow.ToString("dddd, MMMM dd, yyyy")
+                </span>
+                @if (SignInManager.IsSignedIn(User))
+                {
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="theme-toggle" id="themeToggle" type="button" title="Toggle theme">
+                            <i class="bi bi-sun-fill" id="themeIcon"></i>
+                        </button>
+
+                        <a href="/Settings" class="theme-toggle" title="Settings" style="text-decoration: none;">
+                            <i class="bi bi-gear"></i>
+                        </a>
+
+                        <div class="dropdown">
+                            <a href="#" class="user-dropdown-toggle dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                @if (!string.IsNullOrEmpty(profileImageUrl))
+                                {
+                                    <div class="avatar avatar-sm"><img src="@profileImageUrl" alt="" /></div>
+                                }
+                                else
+                                {
+                                    <div class="avatar avatar-sm avatar-initials">@userInitial</div>
+                                }
+                                <span style="font-size: 0.875rem;">@currentUser?.FullName</span>
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <span class="badge bg-danger" style="font-size: 0.65rem;">Admin</span>
+                                }
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                @if (User.IsInRole("Customer"))
+                                {
+                                    <li><a class="dropdown-item" href="/Customer/Profile"><i class="bi bi-person me-2"></i>Profile</a></li>
+                                }
+                                <li><a class="dropdown-item" href="/Settings"><i class="bi bi-gear me-2"></i>Settings</a></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <form asp-controller="Account" asp-action="Logout" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i>Logout</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                }
+            </nav>
+            <div class="p-4 flex-grow-1">
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,177 @@
+@inject UserManager<AppUser> UserManager
+@{
+    ViewData["Title"] = "Direct Chat";
+    var currentUser = await UserManager.GetUserAsync(User);
+    var currentUserId = currentUser?.Id ?? "";
+}
+
+<h4 class="mb-4" style="color: var(--text-primary);">Direct Chat</h4>
+
+<div class="row" style="height: 600px;">
+    <!-- Member List -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header">Members</div>
+            <div class="card-body p-0" id="memberList" style="overflow-y: auto;">
+                <div class="text-center py-4" style="color: var(--text-muted);" id="loadingMembers">Loading members...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Window -->
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm h-100 d-flex flex-column">
+            <div class="card-header" id="chatHeader">Select a member to start chatting</div>
+            <div class="card-body flex-grow-1 chat-area" id="dmChatArea" style="overflow-y: auto;">
+            </div>
+            <div class="card-footer" id="dmInputArea" style="display: none;">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="dmInput" placeholder="Type a message..." />
+                    <button class="btn btn-primary" id="dmSendBtn"><i class="bi bi-send"></i> Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+<script>
+    const currentUserId = '@currentUserId';
+    let activeConversationId = null;
+    let activeMemberId = null;
+
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl('/chatHub')
+        .withAutomaticReconnect()
+        .build();
+
+    connection.on('ReceiveDirectMessage', (data) => {
+        if (activeConversationId) {
+            appendDmMessage(data.body, data.senderId, data.senderName, data.createdAt);
+        }
+    });
+
+    connection.start().then(() => {
+        loadMembers();
+        loadRecentDMs();
+    });
+
+    async function loadMembers() {
+        const res = await fetch('/api/dm/members');
+        const members = await res.json();
+        const list = document.getElementById('memberList');
+        list.innerHTML = '';
+
+        if (members.length === 0) {
+            list.innerHTML = '<div class="text-center py-4" style="color: var(--text-muted);">No members found.</div>';
+            return;
+        }
+
+        members.forEach(m => {
+            const initial = m.fullName.charAt(0).toUpperCase();
+            const item = document.createElement('a');
+            item.href = '#';
+            item.className = 'list-group-item list-group-item-action border-0 px-3 py-2';
+            item.dataset.userId = m.id;
+            item.innerHTML = `
+                <div class="d-flex align-items-center gap-2">
+                    <div class="avatar avatar-sm avatar-initials">${initial}</div>
+                    <div>
+                        <strong>${escapeHtml(m.fullName)}</strong><br>
+                        <small style="color: var(--text-muted);">${escapeHtml(m.email)}</small>
+                    </div>
+                </div>`;
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                startChat(m.id, m.fullName);
+                document.querySelectorAll('#memberList a').forEach(a => a.classList.remove('active'));
+                item.classList.add('active');
+            });
+            list.appendChild(item);
+        });
+    }
+
+    async function loadRecentDMs() {}
+
+    async function startChat(otherUserId, otherUserName) {
+        if (activeConversationId) {
+            await connection.invoke('LeaveDirectConversation', activeConversationId);
+        }
+
+        activeMemberId = otherUserId;
+        document.getElementById('chatHeader').textContent = `Chat with ${otherUserName}`;
+        document.getElementById('dmInputArea').style.display = 'block';
+        document.getElementById('dmChatArea').innerHTML = '<div class="text-center py-4" style="color: var(--text-muted);">Loading...</div>';
+
+        const res = await fetch('/api/dm/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ otherUserId })
+        });
+        const data = await res.json();
+        activeConversationId = data.id;
+
+        await connection.invoke('JoinDirectConversation', activeConversationId);
+
+        const msgRes = await fetch(`/api/dm/conversations/${activeConversationId}/messages`);
+        const messages = await msgRes.json();
+        const chatArea = document.getElementById('dmChatArea');
+        chatArea.innerHTML = '';
+
+        messages.forEach(msg => {
+            appendDmMessage(msg.body, msg.senderId, msg.senderId === currentUserId ? 'You' : otherUserName, msg.createdAt);
+        });
+
+        chatArea.scrollTop = chatArea.scrollHeight;
+        document.getElementById('dmInput').focus();
+    }
+
+    function appendDmMessage(text, senderId, senderName, createdAt) {
+        const chatArea = document.getElementById('dmChatArea');
+        const isMe = senderId === currentUserId;
+        const div = document.createElement('div');
+        div.className = `d-flex ${isMe ? 'justify-content-end' : 'justify-content-start'} mb-2`;
+        const time = new Date(createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        div.innerHTML = `
+            <div class="chat-bubble ${isMe ? 'chat-bubble-outbound' : 'chat-bubble-inbound'}">
+                <div class="small ${isMe ? '' : ''} mb-1"><strong>${escapeHtml(senderName)}</strong></div>
+                <div style="white-space: pre-wrap;">${escapeHtml(text)}</div>
+                <div class="chat-bubble-time">${time}</div>
+            </div>`;
+        chatArea.appendChild(div);
+        chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+    function escapeHtml(text) {
+        const d = document.createElement('div');
+        d.textContent = text;
+        return d.innerHTML;
+    }
+
+    async function sendDm() {
+        const input = document.getElementById('dmInput');
+        const msg = input.value.trim();
+        if (!msg || !activeConversationId) return;
+        input.value = '';
+        document.getElementById('dmSendBtn').disabled = true;
+
+        try {
+            await fetch(`/api/dm/conversations/${activeConversationId}/messages`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: msg })
+            });
+        } catch (e) {
+            appendDmMessage('Error sending message.', currentUserId, 'System', new Date().toISOString());
+        }
+        document.getElementById('dmSendBtn').disabled = false;
+        input.focus();
+    }
+
+    document.getElementById('dmSendBtn').addEventListener('click', sendDm);
+    document.getElementById('dmInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') sendDm();
+    });
+</script>
+}
